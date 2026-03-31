@@ -1,0 +1,99 @@
+# CloudBees Unify Staged Workflow
+# Release orchestration across dev, staging, and production environments
+
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: Banking App Release
+
+on:
+  release:
+    # Triggers when a Release is created in CloudBees
+
+permissions:
+  scm-token-own: read
+  scm-token-org: read
+  id-token: read
+
+jobs:
+  # Stage 1: Deploy to Development
+  deploy-to-dev:
+    environment: dev
+    steps:
+      - name: Deploy to Development
+        uses: ./.cloudbees/workflows/deployer.yaml
+        with:
+          manifest: ${{ inputs.manifest }}
+          environment: dev
+
+      - name: Publish dev deployment evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## ✅ Deployed to Development
+            - Environment: dev
+            - Release: ${{ cloudbees.release.name }}
+            - Run ID: ${{ cloudbees.run_id }}
+            - Status: Success
+
+  # Stage 2: Deploy to Staging (with approval)
+  deploy-to-staging:
+    needs: deploy-to-dev
+    environment: staging
+    steps:
+      - name: Approval Gate - Staging
+        uses: cloudbees-io/wait-for-approval@v1
+        with:
+          message: "Approve deployment to Staging environment?"
+
+      - name: Deploy to Staging
+        uses: ./.cloudbees/workflows/deployer.yaml
+        with:
+          manifest: ${{ inputs.manifest }}
+          environment: staging
+
+      - name: Publish staging deployment evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## ✅ Deployed to Staging
+            - Environment: staging
+            - Release: ${{ cloudbees.release.name }}
+            - Run ID: ${{ cloudbees.run_id }}
+            - Status: Success
+
+  # Stage 3: Deploy to Production (with approval)
+  deploy-to-prod:
+    needs: deploy-to-staging
+    environment: prod
+    steps:
+      - name: Approval Gate - Production
+        uses: cloudbees-io/wait-for-approval@v1
+        with:
+          message: "⚠️ Approve deployment to PRODUCTION environment?"
+
+      - name: Deploy to Production
+        uses: ./.cloudbees/workflows/deployer.yaml
+        with:
+          manifest: ${{ inputs.manifest }}
+          environment: prod
+
+      - name: Publish production deployment evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## 🎉 Deployed to Production
+            - Environment: prod
+            - Release: ${{ cloudbees.release.name }}
+            - Run ID: ${{ cloudbees.run_id }}
+            - Status: Release Complete ✅
+
+      - name: Final release summary
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## 📊 Release Summary
+            - Release Name: ${{ cloudbees.release.name }}
+            - All environments deployed successfully
+            - Dev → Staging → Production
+            - Total Run ID: ${{ cloudbees.run_id }}
+            - Completion: ${{ cloudbees.scm.sha }}

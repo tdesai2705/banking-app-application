@@ -1,0 +1,33 @@
+# CloudBees Unify Deployer Workflow
+# Orchestrates deployment of banking-app component to target environment
+
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: deployer
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: Target environment (dev/staging/prod)
+      manifest:
+        type: string
+        required: true
+        description: Release manifest (JSON)
+
+permissions:
+  scm-token-own: read
+  scm-token-org: read
+  id-token: read
+
+jobs:
+  deploy-banking-app:
+    # Only deploy if banking-app is in the manifest with deploy=true
+    if: ${{ fromJSON(inputs.manifest)['banking-app']['banking-app'].deploy }}
+    uses: tdesai2705/banking-app/.cloudbees/workflows/deploy.yaml@main
+    with:
+      artifact-id: ${{ fromJSON(inputs.manifest)['banking-app']['banking-app'].id }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit
