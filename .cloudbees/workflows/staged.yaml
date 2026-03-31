@@ -6,8 +6,12 @@ kind: workflow
 name: Banking App Release
 
 on:
-  release:
-    # Triggers when a Release is created in CloudBees
+  workflow_dispatch:
+    inputs:
+      manifest:
+        type: string
+        required: true
+        description: Release manifest (JSON)
 
 permissions:
   scm-token-own: read
