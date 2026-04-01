@@ -19,29 +19,29 @@ permissions:
   id-token: read
 
 jobs:
-  # Stage 1: Deploy to Development
-  deploy-to-dev:
-    environment: dev
+  # Stage 1: Deploy to QA
+  deploy-to-qa:
+    environment: qa
     steps:
-      - name: Deploy to Development
+      - name: Deploy to QA
         uses: ./.cloudbees/workflows/deployer.yaml
         with:
           manifest: ${{ inputs.manifest }}
-          environment: dev
+          environment: qa
 
-      - name: Publish dev deployment evidence
+      - name: Publish QA deployment evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
           content: |-
-            ## ✅ Deployed to Development
-            - Environment: dev
+            ## ✅ Deployed to QA
+            - Environment: qa
             - Release: ${{ cloudbees.release.name }}
             - Run ID: ${{ cloudbees.run_id }}
             - Status: Success
 
   # Stage 2: Deploy to Staging (with approval)
   deploy-to-staging:
-    needs: deploy-to-dev
+    needs: deploy-to-qa
     environment: staging
     steps:
       - name: Approval Gate - Staging
@@ -98,6 +98,6 @@ jobs:
             ## 📊 Release Summary
             - Release Name: ${{ cloudbees.release.name }}
             - All environments deployed successfully
-            - Dev → Staging → Production
+            - QA → Staging → Production
             - Total Run ID: ${{ cloudbees.run_id }}
             - Completion: ${{ cloudbees.scm.sha }}
