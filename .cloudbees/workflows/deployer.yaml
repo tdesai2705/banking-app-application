@@ -16,6 +16,17 @@ on:
         type: string
         required: true
         description: Release manifest (JSON)
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: Target environment (qa/staging/prod)
+        default: qa
+      manifest:
+        type: string
+        required: true
+        description: Release manifest (JSON)
 
 permissions:
   scm-token-own: read
@@ -25,9 +36,9 @@ permissions:
 jobs:
   deploy-banking-app:
     # Only deploy if banking-app is in the manifest with deploy=true
-    if: ${{ fromJSON(inputs.manifest)['banking-app']['banking-app'].deploy }}
+    if: ${{ fromJSON(inputs.manifest)['banking-app']['tejasdesai27/banking-app'].deploy }}
     uses: tdesai2705/banking-app/.cloudbees/workflows/deploy.yaml@main
     with:
-      artifact-id: ${{ fromJSON(inputs.manifest)['banking-app']['banking-app'].id }}
+      artifact-id: ${{ fromJSON(inputs.manifest)['banking-app']['tejasdesai27/banking-app'].id }}
       environment: ${{ inputs.environment }}
     secrets: inherit
