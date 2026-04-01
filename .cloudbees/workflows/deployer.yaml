@@ -11,7 +11,7 @@ on:
       environment:
         type: string
         required: true
-        description: Target environment (dev/staging/prod)
+        description: Target environment (qa/staging/prod)
       manifest:
         type: string
         required: true
