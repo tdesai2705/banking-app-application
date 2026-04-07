@@ -36,7 +36,7 @@ permissions:
 jobs:
   banking-app:
     if: ${{ fromJSON(inputs.manifest)['banking-app'].deploy }}
-    uses: tdesai2705/banking-app/.cloudbees/workflows/deploy.yaml@main
+    uses: tdesai2705/banking-app/.cloudbees/workflows/deploy.yaml@acda88f691f0979e900f7954fe2a9f3d39d100cf
     with:
       artifact-id: ${{ fromJSON(inputs.manifest)['banking-app'].id }}
       artifact-url: ${{ fromJSON(inputs.manifest)['banking-app'].url }}
