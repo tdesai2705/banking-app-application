@@ -34,12 +34,11 @@ permissions:
   id-token: read
 
 jobs:
-  deploy-banking-app:
-    # Only deploy if banking-app is in the manifest with deploy=true
-    if: ${{ fromJSON(inputs.manifest)['banking-app']['tejasdesai27/banking-app'].deploy }}
+  banking-app:
+    if: ${{ fromJSON(inputs.manifest)['banking-app'].deploy }}
     uses: tdesai2705/banking-app/.cloudbees/workflows/deploy.yaml@main
     with:
-      artifact-id: ${{ fromJSON(inputs.manifest)['banking-app']['tejasdesai27/banking-app'].id }}
-      artifact-url: tejasdesai27/banking-app:${{ fromJSON(inputs.manifest)['banking-app']['tejasdesai27/banking-app'].version }}
+      artifact-id: ${{ fromJSON(inputs.manifest)['banking-app'].id }}
+      artifact-url: ${{ fromJSON(inputs.manifest)['banking-app'].url }}
       environment: ${{ inputs.environment }}
     secrets: inherit
